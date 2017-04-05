@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="ISO-8859-1">
+		<title>p5 jx jq</title>
+		
+	    <style type="text/css">
+	    	body{
+	    		width: 900px;
+	    	}
+	    	h1{
+	    		margin-left: 150px;
+	    	}
+	    	table {
+	    		margin-left: 50px;
+	    		
+	    	}
+			table, th, tr, td{
+				border: 1px solid black;
+	    		border-collapse: collapse;
+	    		padding: 5px;	
+			}
+			#n_indx, #n_age{
+				width: 50px;
+			}
+			.add-new{
+				margin-top: 20px;
+				margin-left: 150px; 
+			}
+			input{
+				max-width:100px;
+			}
+	    </style>
+		
+		<script src="jquery-1.7.1.min.js"></script>
+		<script>
+		$(document).ready(function(){
+	
+	// 1 Display data on page load from json 
+		$.ajax({url: 'dataEmp.json', dataType: "json"})
+		  .done(function(res) {
+		    
+		    // fetching column names -
+		    var columns = Object.keys(res.employees[0]);
+		    var headings = "<tr>";
+		    for(var i in columns){
+		    	//$("table thead").append(columns[i]);
+		    	headings += " <th>"+columns[i]+"</th> ";
+		    }
+		    headings += "<th>Action</th></tr>";
+		    $("table thead").append(headings);
+		    //var htmlrow = '';
+		    // fetching data 
+		    $.each(res.employees, function(i, item) {
+		    	var htmlrow = '<tr>';
+		    	$.each(columns, function(j,itm) {
+		    		htmlrow += '<td>'+ item[itm] + '</td>';
+		    	});
+		    	htmlrow += '<td> <input type="button" class="edit" value="Edit"> <input type="button" class="delete" value="Delete"> </td>';
+		    	htmlrow += '</tr>';
+		    	$('table tbody').append(htmlrow);
+			});
+		    
+			  })
+			  .fail(function() {
+			    alert( "error" );
+			  })
+			  .always(function() {
+			    //alert( "complete" );
+			  });
+		
+	// 2 New record - text boxes for addition //
+			$(".add-new").click(function(){
+				
+				var add_new_rec = '<tr class="newrow"> <td> <input type="text" class="n_indx"> </td> <td> <input type="text" class="n_name"> </td> <td> <input type="text" class="n_surname"> </td> <td> <input type="text" class="n_adrs"> </td> <td> <input type="text" class="n_age"> </td>';
+				add_new_rec += '<td> <input type="button" class="save_new" value="Save"> <input type="button" class="cancel_new" value="Cancel"> </td> </tr>';
+				$("table tbody").append(add_new_rec);
+			});
+			
+	// 2.1 Cancel new addition (dont save) of row when Cancel button is clicked //
+			$('table tbody').on('click', '.cancel_new', function() {
+				var to_del = $(this).parent().parent();
+				to_del.detach();
+			});
+			
+	//use only statically present elements to access the element for JQuery function
+	// 2.2 Save new row from text boxes
+			$('table tbody').on('click', '.save_new', function() {
+				//alert('click');
+				var n_indx = $(".n_indx").val();
+			    var n_name = $(".n_name").val();
+			    var n_surname = $(".n_surname").val();
+			    var n_address = $(".n_adrs").val();
+			    var n_age = $(".n_age").val();
+			    
+			    var markup = "<tr><td>" + n_indx + "</td><td>" + n_name + "</td><td>" + n_surname + "</td><td>" + n_address + "</td><td>" + n_age + "</td>";
+	            markup += '<td> <input type="button" class="edit" value="Edit"> <input type="button" class="delete" value="Delete"> </td> </tr>';
+				
+				
+					var to_del = $(this).parent().parent();
+					to_del.detach();
+	            //	$( ".newrow" ).detach();	//we can use this command also to detach the textbox row
+
+	            $('table tbody').append(markup);
+	            
+			});
+			
+		
+	// 3 Edit Row (put data in text boxes) when Edit button is clicked //
+			$('table tbody').on('click', '.edit', function() {
+				var to_edit = $(this).parent().parent();
+				//alert("in edit")
+				//document.getElementById("one").innerHTML=to_edit;
+				var tdName = to_edit.children("td:nth-child(2)");
+				var tdSName = to_edit.children("td:nth-child(3)");
+				var tdAdrs = to_edit.children("td:nth-child(4)");
+				var tdAge = to_edit.children("td:nth-child(5)");
+				var tdBtn = to_edit.children("td:nth-child(6)");
+				
+				var temp = tdName.html();
+				tdName.html("<input type='text' class='e_Name' value='"+tdName.html()+"'/>");
+				tdName.append("<input style='display:none;' class='p_Name' value='"+temp+"'/>");
+				//
+				temp = tdSName.html();
+				tdSName.html("<input type='text' class='e_Sname' value='"+tdSName.html()+"'/>");
+				tdSName.append("<input style='display:none;' class='p_Sname' value='"+temp+"'/>");
+				//
+				temp = tdAdrs.html();
+				tdAdrs.html("<input type='text' class='e_Adrs' value='"+tdAdrs.html()+"'/>");
+				tdAdrs.append("<input style='display:none;' class='p_Adrs' value='"+temp+"'/>");
+				//
+				temp = tdAge.html();
+				tdAge.html("<input type='text' class='e_Age' value='"+tdAge.html()+"'/>");
+				tdAge.append("<input style='display:none;' class='p_Age' value='"+temp+"'/>");
+				//
+				tdBtn.html("<input type='button' value='Save' class='edit_save'/> <input type='button' value='Cancel' class='edit_cancel'/> ")
+				
+			});
+			
+	// 3.1 Cancel editing when Cancel button is clicked //
+			$('table tbody').on('click', '.edit_cancel', function() {
+				
+				var p_name = $(".p_Name").val();
+				var p_sname = $(".p_Sname").val();
+			    var p_adrs = $(".p_Adrs").val();
+			    var p_age = $(".p_Age").val();
+			    
+				var to_cancel = $(this).parent().parent();
+				to_cancel.children("td:nth-child(2)").html(p_name);
+				to_cancel.children("td:nth-child(3)").html(p_sname);
+				to_cancel.children("td:nth-child(4)").html(p_adrs);
+				to_cancel.children("td:nth-child(5)").html(p_age);
+				to_cancel.children("td:nth-child(6)").html("<input type='button' value='Edit' class='edit'/> <input type='button' value='Delete' class='delete'/>");
+				
+			});
+			
+	// 3.2 Save edited row
+			$('table tbody').on('click', '.edit_save', function(){
+				//alert("in edit save");
+				var to_save = $(this).parent().parent();
+				
+				var e_name = $(".p_Name").val();
+			    var e_sname = $(".e_Sname").val();
+			    var e_adrs = $(".e_Adrs").val();
+			    var e_age = $(".e_Age").val();
+			    
+				to_save.children("td:nth-child(2)").html(e_name);
+				to_save.children("td:nth-child(3)").html(e_sname);
+				to_save.children("td:nth-child(4)").html(e_adrs);
+				to_save.children("td:nth-child(5)").html(e_age);
+				to_save.children("td:nth-child(6)").html("<input type='button' value='Edit' class='edit'/> <input type='button' value='Delete' class='delete'/>");
+				
+			});
+			
+	// 4 Delete Row when Delete button is clicked //
+			$('table tbody').on('click', '.delete', function() {
+				var to_del = $(this).parent().parent();
+				to_del.detach();
+			});
+			
+		});
+		
+		</script>
+	</head>
+	<body>
+		<h1 >Table Data using JS, JQuery, Ajax, JSON</h1>
+		<table border="1">
+			<thead></thead>
+			<tbody></tbody>
+			<tfoot></tfoot>
+		</table>	
+		<button class="add-new">Add new record</button>
+		<p id="one"></p>
+	</body>
+</html>
